@@ -1,24 +1,25 @@
 import { useEffect, useState } from "react";
 import type { Note } from './types/note';
 import { notesApi } from "./api/notesApi";
+import { CreateNoteModal } from "./components/CreateNoteModal";
 
 function App() {
   const [notes, setNotes] = useState<Note[]>([]);
-  const [loading, setLoading] = useState<boolean>(true)
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetchNotes = async () => {
+    try {
+      const data = await notesApi.getAll();
+      setNotes(data);
+    } catch (error) {
+      console.error("Error: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchNotes = async () => {
-      try {
-        setLoading(true);
-        const data = await notesApi.getAll();
-        setNotes(data);
-      } catch (error) {
-        console.error("Error: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchNotes();
   }, []);
 
@@ -30,8 +31,11 @@ function App() {
       <header className="bg-white shadow-sm">
         <div className="max-w-7x1 mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <h1 className="text-2x1 font-bold text-indigo-600">Smart Study Hub</h1>
-          <button className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
-            + Создать
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition shadow-sm flex items-center gap-2"
+          >
+            <span>+</span> Создать
           </button>
         </div>
       </header>
@@ -74,6 +78,14 @@ function App() {
           </div>
         )}
       </main>
+
+      <CreateNoteModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onNoteCreated={() => {
+          fetchNotes();
+        }}
+      />
     </div>
   )
 }
