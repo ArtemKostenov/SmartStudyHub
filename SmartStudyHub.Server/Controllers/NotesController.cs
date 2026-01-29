@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartStudyHub.Server.Data;
@@ -6,6 +7,7 @@ using SmartStudyHub.Server.Models;
 
 namespace SmartStudyHub.Server.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class NotesController : ControllerBase
@@ -21,7 +23,10 @@ public class NotesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<NoteResponse>>> GetAllNotes()
     {
-        var notes = await _context.Notes.AsNoTracking().OrderByDescending(n => n.CreatedAt).ToListAsync();
+        var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdString, out int userId)) return Unauthorized();
+
+        var notes = await _context.Notes.AsNoTracking().Where(n => n.UserId == userId).OrderByDescending(n => n.CreatedAt).ToListAsync();
 
         var response = notes.Select(n => new NoteResponse
         {
@@ -61,10 +66,11 @@ public class NotesController : ControllerBase
     public async Task<ActionResult<NoteResponse>> CreateNote([FromBody] CreateNoteRequest request)
     {
         //Проверка юзера
-        var userExists = await _context.Users.AnyAsync(u => u.Id == request.UserId);
-        if (!userExists)
+        var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        
+        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
         {
-            return BadRequest("Пользователя с таким Id не найдено");
+            return Unauthorized("Вы не авторизованы или пользователь не существует");
         }
 
         var now = DateTime.UtcNow;
@@ -73,7 +79,7 @@ public class NotesController : ControllerBase
         {
             Title = request.Title,
             Content = request.Content,
-            UserId = request.UserId,
+            UserId = userId,
             CreatedAt = now,
             UpdatedAt = now
         };
