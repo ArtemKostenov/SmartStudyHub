@@ -40,7 +40,7 @@ public class AuthController : ControllerBase
             Username = request.Username,
             Email = request.Email,
             PasswordHash = passwordHash,
-            BirthDate = request.BirthDate,
+            BirthDate = DateTime.SpecifyKind(request.BirthDate, DateTimeKind.Utc),
             CreatedAt = DateTime.UtcNow
         };
 

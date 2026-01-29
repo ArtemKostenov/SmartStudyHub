@@ -2,8 +2,12 @@ import { useEffect, useState } from "react";
 import type { Note } from './types/note';
 import { notesApi } from "./api/notesApi";
 import { CreateNoteModal } from "./components/CreateNoteModal";
+import { useAuth } from "./context/AuthContext";
+import { AuthPage } from "./components/AuthPage.tsx";
 
 function App() {
+  const { isAuthenticated, logout, user } = useAuth()
+
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -20,23 +24,43 @@ function App() {
   };
 
   useEffect(() => {
-    fetchNotes();
-  }, []);
+    if (isAuthenticated) {
+      setLoading(true);
+      fetchNotes().finally(() => setLoading(false));
+    }
+  }, [isAuthenticated]);
+
+  if (!isAuthenticated) {
+    return <AuthPage />
+  }
 
   if (loading) return <p>Loading...</p>
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7x1 mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 className="text-2x1 font-bold text-indigo-600">Smart Study Hub</h1>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition shadow-sm flex items-center gap-2"
-          >
-            <span>+</span> Создать
-          </button>
+          <div className="flex items-center gap-4">
+            <h1 className="text-2x1 font-bold text-indigo-600">Smart Study Hub</h1>
+            <span className="text-sm text-gray-500 hidden sm:block">Привет, {user?.username}</span>
+          </div>
+
+          <div className="flex gap-3">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition shadow-sm flex items-center gap-2"
+            >
+              <span>+</span> Создать
+            </button>
+
+            <button
+              onClick={logout}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition shadow-sm flex items-center gap-2"
+            >
+              Выйти
+            </button>
+          </div>
         </div>
       </header>
 
@@ -63,9 +87,6 @@ function App() {
 
                 <div className="mt-auto pt-4 border-t border-gray-100 flex justify-between items-center text-sm text-gray-400">
                   <span>{new Date(note.createdAt).toLocaleDateString()}</span>
-                  <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-                    ID: {note.id}
-                  </span>
                 </div>
               </div>  
             ))}
