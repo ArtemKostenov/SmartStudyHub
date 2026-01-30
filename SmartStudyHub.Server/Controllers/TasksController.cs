@@ -11,11 +11,11 @@ namespace SmartStudyHub.Server.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class TaskController : ControllerBase
+public class TasksController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
 
-    public TaskController(ApplicationDbContext context)
+    public TasksController(ApplicationDbContext context)
     {
         _context = context;
     }
