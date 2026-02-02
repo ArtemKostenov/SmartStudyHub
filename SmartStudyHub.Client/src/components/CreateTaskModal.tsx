@@ -48,7 +48,7 @@ export const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }: Props) => {
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
                     <h3 className="text-lg font-semibold text-gray-800">Новая задача</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2x1">&times;</button>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">

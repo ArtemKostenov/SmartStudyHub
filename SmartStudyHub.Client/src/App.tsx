@@ -47,9 +47,9 @@ function App() {
     <div className="min-h-screen bg-gray-50 text-gray-800 flex flex-col">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-7x1 mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <div className="flex items-center gap-8">
-            <h1 className="text-2x1 font-bold text-indigo-600">Smart Study Hub</h1>
+            <h1 className="text-2xl font-bold text-indigo-600">Smart Study Hub</h1>
 
             <nav className="hidden md:flex gap-4">
               <button
@@ -97,7 +97,7 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7x1 mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-grow w-full">
+      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-grow w-full">
         {activeTab === 'notes' && (
           loading ? (
             <div className="text-center py-10">
@@ -108,7 +108,7 @@ function App() {
               {notes.map((note) => (
                 <div key={note.id} className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition border border-gray-100 flex flex-col">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-x1 font-semibold text-gray-900 line-clamp-1">
+                    <h3 className="text-xl font-semibold text-gray-900 line-clamp-1">
                       {note.title}
                     </h3>
                   </div>
