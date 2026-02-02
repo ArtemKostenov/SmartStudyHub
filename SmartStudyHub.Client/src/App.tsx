@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
 import type { Note } from './types/note';
 import { notesApi } from "./api/notesApi";
-import { CreateNoteModal } from "./components/CreateNoteModal";
+import { NoteModal } from "./components/NoteModal.tsx";
 import { useAuth } from "./context/AuthContext";
 import { AuthPage } from "./components/AuthPage.tsx";
 import { KanbanBoard } from "./components/KanbanBoard.tsx";
 import { CreateTaskModal } from "./components/CreateTaskModal.tsx";
+import { NoteCard } from "./components/NoteCard.tsx";
 
 function App() {
-  const { isAuthenticated, logout, user } = useAuth()
+  const { isAuthenticated, logout } = useAuth()
 
   const [activeTab, setActiveTab] = useState<'notes' | 'tasks'>('notes');
 
   const [notes, setNotes] = useState<Note[]>([]);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -30,6 +32,26 @@ function App() {
     }
   };
 
+  const handleCreateOpen = () => {
+    setEditingNote(null);
+    setIsNoteModalOpen(true);
+  };
+
+  const handleEditOpen = (note: Note) => {
+    setEditingNote(note);
+    setIsNoteModalOpen(true);
+  }
+
+  const handleDeleteNote = async (id: number) => {
+    try {
+      await notesApi.delete(id);
+      setNotes(notes.filter(n => n.id !== id));
+    } catch (error) {
+      alert('Ошибка при удалении');
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     if (isAuthenticated && activeTab === 'notes') {
       setLoading(true);
@@ -40,8 +62,6 @@ function App() {
   if (!isAuthenticated) {
     return <AuthPage />
   }
-
-  if (loading) return <p>Loading...</p>
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 flex flex-col">
@@ -70,7 +90,7 @@ function App() {
           <div className="flex gap-3">
             {activeTab === 'notes' && (
               <button 
-                onClick={() => setIsNoteModalOpen(true)}
+                onClick={handleCreateOpen}
                 className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition shadow-sm flex items-center gap-2"
               >
                 <span>+</span> <span className="hidden sm:inline">Заметка</span>
@@ -106,21 +126,13 @@ function App() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {notes.map((note) => (
-                <div key={note.id} className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition border border-gray-100 flex flex-col">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-xl font-semibold text-gray-900 line-clamp-1">
-                      {note.title}
-                    </h3>
-                  </div>
-
-                  <p className="text-gray-600 mb-4 flex-grow line-clamp-3">
-                    {note.content}
-                  </p>
-
-                  <div className="mt-auto pt-4 border-t border-gray-100 flex justify-between items-center text-sm text-gray-400">
-                    <span>{new Date(note.createdAt).toLocaleDateString()}</span>
-                  </div>
-                </div>  
+                <NoteCard
+                  key={note.id}
+                  note={note}
+                  onClick={handleEditOpen}
+                  onEdit={handleEditOpen}
+                  onDelete={handleDeleteNote}
+                /> 
               ))}
             </div>
           )
@@ -135,12 +147,11 @@ function App() {
         {activeTab === "tasks" && <KanbanBoard key={tasksRefreshKey}/>}
       </main>
 
-      <CreateNoteModal
+      <NoteModal
         isOpen={isNoteModalOpen}
         onClose={() => setIsNoteModalOpen(false)}
-        onNoteCreated={() => {
-          fetchNotes();
-        }}
+        onSaved={fetchNotes}
+        noteToEdit={editingNote}
       />
 
       <CreateTaskModal
