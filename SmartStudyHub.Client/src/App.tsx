@@ -5,6 +5,7 @@ import { CreateNoteModal } from "./components/CreateNoteModal";
 import { useAuth } from "./context/AuthContext";
 import { AuthPage } from "./components/AuthPage.tsx";
 import { KanbanBoard } from "./components/KanbanBoard.tsx";
+import { CreateTaskModal } from "./components/CreateTaskModal.tsx";
 
 function App() {
   const { isAuthenticated, logout, user } = useAuth()
@@ -13,7 +14,10 @@ function App() {
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+
+  const [tasksRefreshKey, setTasksRefreshKey] = useState(0);
 
   const fetchNotes = async () => {
     try {
@@ -66,7 +70,7 @@ function App() {
           <div className="flex gap-3">
             {activeTab === 'notes' && (
               <button 
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => setIsNoteModalOpen(true)}
                 className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition shadow-sm flex items-center gap-2"
               >
                 <span>+</span> <span className="hidden sm:inline">Заметка</span>
@@ -75,7 +79,7 @@ function App() {
 
             {activeTab === 'tasks' && (
               <button
-                onClick={() => alert('Пока зашлушка')}
+                onClick={() => setIsTaskModalOpen(true)}
                 className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition shadow-sm flex items-center gap-2"
               >
                 <span>+</span><span className="hidden sm:inline">Задача</span>
@@ -128,18 +132,24 @@ function App() {
           </div>
         )}
 
-        {activeTab === "tasks" && <KanbanBoard />}
+        {activeTab === "tasks" && <KanbanBoard key={tasksRefreshKey}/>}
       </main>
 
       <CreateNoteModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isNoteModalOpen}
+        onClose={() => setIsNoteModalOpen(false)}
         onNoteCreated={() => {
           fetchNotes();
         }}
       />
+
+      <CreateTaskModal
+        isOpen={isTaskModalOpen}
+        onClose={() => setIsTaskModalOpen(false)}
+        onTaskCreated={() => setTasksRefreshKey(prev => prev + 1)}
+      />
     </div>
-  )
+  );
 }
 
 export default App
