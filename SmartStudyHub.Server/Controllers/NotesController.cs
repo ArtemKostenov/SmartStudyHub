@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -97,5 +98,53 @@ public class NotesController : ControllerBase
         };
 
         return CreatedAtAction(nameof(GetNoteById), new { id = newNote.Id }, response);
+    }
+
+    //PUT: api/notes/{id} (обновить заметку)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateNote(int id, [FromBody] UpdateNoteRequest request)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        var note = await _context.Notes.FirstOrDefaultAsync(n => n.Id == id && userId == n.UserId);
+
+        if (note == null)
+        {
+            return NotFound("Заметка не найдена");
+        }
+
+        note.Title = request.Title;
+        note.Content = request.Content;
+        note.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new NoteResponse
+        {
+            Id = note.Id,
+            Title = note.Title,
+            Content = note.Content,
+            CreatedAt = note.CreatedAt,
+            UpdatedAt = note.UpdatedAt
+        });
+    }
+
+    //DELETE: api/notes/{id} (удалить заметку)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteNote(int id)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        var note = await _context.Notes.FirstOrDefaultAsync(n => n.Id == id && n.UserId == userId);
+
+        if (note == null)
+        {
+            return NotFound("Заметка не найдена");
+        }
+
+        _context.Notes.Remove(note);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
     }
 }
